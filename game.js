@@ -1,18 +1,41 @@
 import vec from "./vec.js";
 import { Ship, GravityBitch } from "./objects.js";
 
-export default function Game(canvas) {
+export default function Game(canvas, controls) {
     const second = 1000; // ms
     const G = 6.674 * Math.pow(10, -11);
     const context = canvas.getContext("2d");
+    //this.controls = controls;
     const _this = this;
+    let paused = false;
 
     this.initialize = function () {
-        const instructions = document.getElementById("instructions");
-        canvas.height = window.innerHeight - instructions.getClientRects()[0].height * 2;
-        canvas.width = window.innerWidth;
-        canvas.style = "background: white;";
         const keysDown = {};
+        const ship = new Ship(50, 100, 1000, 0, 16);
+        controls.stopButton.addEventListener(
+            "click",
+            function() {
+                paused = true;
+            }
+        );
+        controls.startButton.addEventListener(
+            "click",
+            function() {
+                paused = false;
+            }
+        );
+        controls.position.xInput.addEventListener(
+            "change",
+            function(e) {
+                ship.pos[0] = parseInt(e.target.value);
+            }
+        );
+        controls.position.yInput.addEventListener(
+            "change",
+            function(e) {
+                ship.pos[1] = parseInt(e.target.value);
+            }
+        );
         document.body.addEventListener(
             "keydown",
             function(e) {
@@ -25,11 +48,8 @@ export default function Game(canvas) {
                 keysDown[e.key] = false;
             }
         );
-        const ship = new Ship(50, 100, 1000, 0, 16);
         const objects = [
             ship,
-            new GravityBitch(748, 442, 19, 62, 1000),
-            new GravityBitch(875, 688, -50, -11, Math.pow(10, 14)),
             new GravityBitch(canvas.width / 2, canvas.height / 2, 0, 0, Math.pow(10, 16)),
         ];
         let t = Date.now();
@@ -61,7 +81,18 @@ export default function Game(canvas) {
         ship.dir_rot = vec.unit([Math.cos(ship.rot), Math.sin(ship.rot)]);
         // ship under thrust?
         ship.thrust = keysDown["w"];
-        this.simulate(state, h);
+        //
+        const h_ = h / 10;
+        if (!paused) {
+            for (let i_h = 0; i_h < 10; i_h++) {
+                this.simulate(state, h_);
+            }
+            // update controls
+            controls.position.xInput.value = ship.pos[0];
+            controls.position.yInput.value = ship.pos[1];
+            controls.velocity.xInput.value = ship.vel[0];
+            controls.velocity.yInput.value = ship.vel[1];
+        }
         this.render(state);
         state.t = now;
         window.requestAnimationFrame(

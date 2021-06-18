@@ -1,0 +1,11 @@
+.horizontal {
+    display: flex;
+    flex-direction: row;
+}
+.controls {
+    margin-left: 15px;
+}
+#game {
+    border: solid 1px black;
+}
+
