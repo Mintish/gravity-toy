@@ -15,8 +15,8 @@
         </div>
         <div>
           <h4>Velocity:</h4>
-          <label>x<input type="range" min="-100" max="100" step="1" id="velocity-x-input" /></label>
-          <label>y<input type="range" min="-100" max="100" step="1" id="velocity-y-input" /></label>
+          <label>x<input type="number" id="velocity-x-input" /></label>
+          <label>y<input type="number" id="velocity-y-input" /></label>
         </div>
         <div>
           <h4>Mass</h4>
@@ -26,10 +26,32 @@
           <button id="start-button">Start</button>
           <button id="stop-button">Stop</button>
         </div>
+        <div>
+          <table id="objects-table">
+            <thead>
+              <tr>
+                <th colspan="2">Postion</th>
+                <th colspan="2">Velocity</th>
+                <th>Mass</th>
+              </tr>
+              <tr>
+                <th>x (m/s)</th>
+                <th>y (m/s)</th>
+                <th>x (m/s)</th>
+                <th>y (m/s)</th>
+                <th>(g)</th>
+              </tr>
+            </thead>
+            <tbody id="objects">
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
     <span id="instructions">Controls are <tt>a</tt> (rotate left), <tt>w</tt> (thrust), <tt>d</tt> (rotate right).</span>
     <script type="module" src="index.js"></script>
+    <template id="object-template">
+    </template>
   </body>
 </html>
 

@@ -13,6 +13,8 @@ const controls = {
         yInput: document.getElementById("velocity-y-input"),
     },
     massInput: document.getElementById("mass-input"),
+    objectsList: document.getElementById("objects"),
 };
+
 const game = new Game(canvas, controls);
 game.initialize();
