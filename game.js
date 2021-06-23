@@ -1,18 +1,116 @@
 import vec from "./vec.js";
 import { Ship, GravityBitch } from "./objects.js";
 
-export default function Game(canvas) {
+export default function Game(canvas, controls) {
     const second = 1000; // ms
     const G = 6.674 * Math.pow(10, -11);
     const context = canvas.getContext("2d");
+    this.controls = controls;
     const _this = this;
+    let paused = false;
 
     this.initialize = function () {
-        const instructions = document.getElementById("instructions");
-        canvas.height = window.innerHeight - instructions.getClientRects()[0].height * 2;
-        canvas.width = window.innerWidth;
-        canvas.style = "background: white;";
         const keysDown = {};
+        let selectedObject = 0;
+        const ship = new Ship(70, 400, 0, 300, 1000, 0, 96);
+        const objects = [
+            ship,
+            new GravityBitch(100, 400, 0, 450, Math.pow(10, 16)),
+            new GravityBitch(400, 400, 0, 0, Math.pow(10, 18)),
+        ];
+        const proxiedObjects = [];
+        for (let i_o = 0; i_o < objects.length; i_o++) {
+            const tableRow = document.createElement("tr");
+            tableRow.addEventListener(
+                "click",
+                function(e) {
+                    selectedObject = i_o;
+                }
+            );
+            const pxCell = document.createElement("td");
+            const pyCell = document.createElement("td");
+            const vxCell = document.createElement("td");
+            const vyCell = document.createElement("td");
+            const mCell = document.createElement("td");
+            mCell.innerHTML = objects[i_o].m;
+            for (let c of [pxCell, pyCell, vxCell, vyCell, mCell])
+                tableRow.appendChild(c);
+            controls.objectsList.appendChild(tableRow);
+            const handler = {
+                set(obj, prop, value) {
+                    obj[prop] = value;
+                    switch (prop) {
+                    case "vel":
+                        if (selectedObject == i_o) {
+                            controls.velocity.xInput.value = value[0];
+                            controls.velocity.yInput.value = value[1];
+                        }
+                        vxCell.innerHTML = value[0];
+                        vyCell.innerHTML = value[1];
+                        break;
+                    case "pos":
+                        if (selectedObject == i_o) {
+                            controls.position.xInput.value = value[0];
+                            controls.position.yInput.value = value[1];
+                        }
+                        pxCell.innerHTML = value[0];
+                        pyCell.innerHTML = value[1];
+                        break;
+                    }
+                    if (selectedObject == i_o) {
+                    }
+                    return true;
+                },
+                get(obj, prop) {
+                    return obj[prop];
+                }
+            };
+            const proxy = new Proxy(objects[i_o], handler);
+            proxiedObjects.push(proxy);
+        }
+        const shipProxy = proxiedObjects[0];
+        controls.stopButton.addEventListener(
+            "click",
+            function() {
+                paused = true;
+            }
+        );
+        controls.startButton.addEventListener(
+            "click",
+            function() {
+                paused = false;
+            }
+        );
+        controls.position.xInput.addEventListener(
+            "change",
+            function(e) {
+                proxiedObjects[selectedObject].pos[0] = parseInt(e.target.value);
+            }
+        );
+        controls.position.yInput.addEventListener(
+            "change",
+            function(e) {
+                proxiedObjects[selectedObject].pos[1] = parseInt(e.target.value);
+            }
+        );
+        controls.velocity.xInput.addEventListener(
+            "change",
+            function(e) {
+                proxiedObjects[selectedObject].vel[0] = parseInt(e.target.value);
+            }
+        );
+        controls.velocity.yInput.addEventListener(
+            "change",
+            function(e) {
+                proxiedObjects[selectedObject].vel[1] = parseInt(e.target.value);
+            }
+        );
+        controls.massInput.addEventListener(
+            "change",
+            function(e) {
+                proxiedObjects[selectedObject].m = parseInt(e.target.value);
+            }
+        );
         document.body.addEventListener(
             "keydown",
             function(e) {
@@ -25,19 +123,24 @@ export default function Game(canvas) {
                 keysDown[e.key] = false;
             }
         );
-        const ship = new Ship(50, 100, 1000, 0, 16);
-        const objects = [
-            ship,
-            new GravityBitch(748, 442, 19, 62, 1000),
-            new GravityBitch(875, 688, -50, -11, Math.pow(10, 14)),
-            new GravityBitch(canvas.width / 2, canvas.height / 2, 0, 0, Math.pow(10, 16)),
-        ];
+        /*
+        controls.objectsList.addEventListener(
+            "click",
+            function(e) {
+                console.log(e.currentTarget);
+                console.log(e.target);
+                const index = e.currentTarget.index;
+                selectedObject = index;
+            }
+        );
+        */
         let t = Date.now();
         const state = {
+            selectedObject,
             keysDown,
             t,
-            ship,
-            objects,
+            ship: shipProxy,
+            objects: proxiedObjects,
         };
         window.requestAnimationFrame(
             function() {
@@ -47,7 +150,7 @@ export default function Game(canvas) {
     };
 
     this.loop = function (state) {
-        const { keysDown, t, ship, objects} = state;
+        const { keysDown, t, ship, objects } = state;
         const now = Date.now();
         const h = (now - t) / second;
         // update ship rotation
@@ -61,7 +164,14 @@ export default function Game(canvas) {
         ship.dir_rot = vec.unit([Math.cos(ship.rot), Math.sin(ship.rot)]);
         // ship under thrust?
         ship.thrust = keysDown["w"];
-        this.simulate(state, h);
+        //
+        //const h_ = h / 10;
+        if (!paused) {
+            //for (let i_h = 0; i_h < 10; i_h++) {
+                this.simulate(state, h);
+            //}
+            controls.massInput.value = ship.m;
+        }
         this.render(state);
         state.t = now;
         window.requestAnimationFrame(

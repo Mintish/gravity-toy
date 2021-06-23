@@ -3,13 +3,17 @@ export function GravityBitch(x, y, v_x, v_y, m) {
     this.vel = [v_x, v_y];
     this.acc = [0, 0];
     this.m = m;
+    this.getProxy = (function(handler) {
+        const { proxy, revoke } = Proxy.revocable(this, handler);
+    }).bind(this);
 }
 
-export function Ship(x, y, m, r, i) {
+export function Ship(x, y, v_x, v_y, m, r, i) {
     this.pos = [x, y];
-    this.vel = [0, 0];
+    this.vel = [v_x, v_y];
     this.m = m;
     this.rot = r;
+    this.dir_rot = null;
     this.thrust = false;
     this.impulse = i;
 }

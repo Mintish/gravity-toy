@@ -1,0 +1,17 @@
+body {
+    user-select: none;
+}
+.horizontal {
+    display: flex;
+    flex-direction: row;
+}
+.controls {
+    margin-left: 15px;
+}
+#game {
+    border: solid 1px black;
+}
+#objects-table > thead > tr > th {
+    width: 12em;
+}
+
